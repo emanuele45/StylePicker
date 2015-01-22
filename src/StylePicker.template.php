@@ -13,7 +13,7 @@ function template_profile_style_picker()
 {
 	global $context, $txt;
 
-	foreach ($context['current_colored_name'] as $name => $values)
+	foreach ($context['style_picker_elements'] as $name => $values)
 	{
 		echo '
 			<dt>
