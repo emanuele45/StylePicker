@@ -24,15 +24,43 @@ class StylePicker
 				'type' => 'color',
 				'validate' => 'color',
 			),
-			'background' => array(
-				'value' => '',
-				'type' => 'color',
-				'validate' => 'color',
-			),
 			'font-size' => array(
 				'value' => '',
 				'type' => 'select',
 				'values' => array('', '4px', '6px', '8px', '10px', '12px', '14px'),
+			),
+			'text-shadow' => array(
+				'value' => '',
+				'type' => 'text',
+				'validate' => function($val) {
+					return $this->validateShadows($val);
+				},
+			),
+			'box-shadow' => array(
+				'value' => '',
+				'type' => 'text',
+				'validate' => function($val) {
+					return $this->validateShadows($val);
+				},
+			),
+			'padding' => array(
+				'value' => '',
+				'type' => 'text',
+				'validate' => function($val) {
+					return $this->validateSize($val, 1, 4);
+				},
+			),
+			'margin' => array(
+				'value' => '',
+				'type' => 'text',
+				'validate' => function($val) {
+					return $this->validateSize($val, 1, 4);
+				},
+			),
+			'background' => array(
+				'value' => '',
+				'type' => 'color',
+				'validate' => 'color',
 			),
 			'border-style' => array(
 				'value' => '',
@@ -43,10 +71,7 @@ class StylePicker
 				'value' => '',
 				'type' => 'text',
 				'validate' => function($val) {
-					if (preg_match('~^((\d+)|(\d+\.\d+))([a-z]{1,3}|%)$~', $val, $matches))
-						return $val;
-					else
-						return '';
+					return $this->validateSize($val);
 				},
 			),
 			'border-color' => array(
@@ -57,14 +82,58 @@ class StylePicker
 			'border-radius' => array(
 				'value' => '',
 				'type' => 'text',
+				// This validates something like:
+				//   1px [2px [3px [4px]]]
+				// but not border-radius with the "/".
 				'validate' => function($val) {
-					if (preg_match('~^((((\d+)|(\d+\.\d+))([a-z]{1,3}|%)\s){0,3}((\d+)|(\d+\.\d+))([a-z]{1,3}|%))(\s*/\s*(((\d+)|(\d+\.\d+))([a-z]{1,3}|%) ){0,3}((\d+)|(\d+\.\d+))([a-z]{1,3}|%)){0,1}$~', $val, $matches))
+					if ($this->validateSize($val, 1, 4))
 						return $val;
 					else
 						return '';
 				},
 			),
 		);
+	}
+
+	// text-shadow: h-shadow v-shadow blur-radius color|none|initial|inherit;
+	// text-shadow: 0 0 0 transparent, 0 1px 0 #6ef3ff;
+	protected function validateShadows($string)
+	{
+		$multi_shadows = explode(',', $string);
+		$valid = true;
+
+		foreach ($multi_shadows as $shadow)
+		{
+			$pieces = array_map('trim', explode(' ', $shadow));
+			$valid = $valid && count($pieces) === 4;
+
+			if ($valid)
+			{
+				$valid = $valid && $this->validateSize(array($pieces[0], $pieces[1], $pieces[2]), 3, 3) !== '';
+
+				$validator->validation_rules(array('text-shadow' => 'valid_color'));
+				$valid = $valid && $validator->validate(array('text-shadow' => $pieces[3]));
+			}
+		}
+
+		if ($valid)
+			return $string;
+		else
+			return '';
+	}
+
+	protected function validateSize($string, $min = 1, $max = 1)
+	{
+		$sizes = explode(' ', $string);
+		$valid = count($sizes) >= $min && count($sizes) <= $max;
+
+		foreach ($sizes as $size)
+			$valid = $valid && preg_match('~^((\d+)|(\d+\.\d+))(em|ex|px|%){0,1}$~', $string, $matches);
+
+		if ($valid)
+			return $string;
+		else
+			return '';
 	}
 
 	public function addStyle($name, $data)
@@ -123,7 +192,7 @@ class StylePicker
 					case 'text':
 					default:
 						if (isset($data['validate']))
-							$styles[$name] = $data['validate']($post);
+							$styles[$name] = $data['validate']($post, $validator);
 						else
 							$styles[$name] = Util::htmlspecialchars($post, ENT_QUOTES);
 						break;
