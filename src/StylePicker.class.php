@@ -12,9 +12,12 @@
 class StylePicker
 {
 	protected $knownStyles = array();
+	protected $prefix_dir = '';
 
-	public function __construct()
+	public function __construct($directory = '')
 	{
+		$this->prefix_dir = $directory != '' ? $directory . '/' : '';
+
 		$this->knownStyles = array(
 			'color' => array(
 				'value' => '',
@@ -78,7 +81,9 @@ class StylePicker
 	{
 		global $context, $txt;
 
-		loadLanguage('StylePicker');
+		loadLanguage($this->prefix_dir . 'StylePicker');
+		loadTemplate($this->prefix_dir . 'StylePicker');
+
 		$return = array();
 		foreach ($this->known_style_attributes() as $name => $data)
 		{
