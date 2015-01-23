@@ -10,8 +10,10 @@
 /**
  * Just define ELK and require the files
  */
+if (!defined('ELK'))
+	define('ELK', 1);
 if (!defined('BASEDIR'))
-	define('BASEDIR', __DIR__ . '/../..');
+	define('BASEDIR', __DIR__ . '/../src');
 
 require_once(__DIR__ . '/../src/StylePicker.class.php');
 
@@ -20,5 +22,10 @@ require_once(__DIR__ . '/../src/StylePicker.class.php');
  */
 function loadLanguage($lang)
 {
-	// Just nothing
+	require_once(BASEDIR . '/StylePicker.english.php');
+}
+
+function loadTemplate($file)
+{
+	require_once(BASEDIR . '/StylePicker.template.php');
 }

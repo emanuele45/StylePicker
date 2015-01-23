@@ -9,6 +9,9 @@
  * @version 0.0.3
  */
 
+if (!defined('ELK'))
+	die('No access...');
+
 class StylePicker
 {
 	protected $knownStyles = array();
